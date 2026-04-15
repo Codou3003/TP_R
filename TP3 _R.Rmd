@@ -1,0 +1,448 @@
+---
+title: "TP1 R : Maîtrise des types de données et construction de data frame"
+author: "Ndeye Codou Mbodj"
+output:
+  pdf_document:
+    latex_engine: xelatex
+date: "2026-04-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r nettoyage, include=FALSE}
+texte <- readLines("TP3-_R.Rmd", encoding = "UTF-8")
+texte <- gsub("\u2018|\u2019", "'", texte)
+texte <- gsub("\u201C|\u201D", '"', texte)
+texte <- gsub("\u00AB|\u00BB", '"', texte)
+texte <- gsub("\u2013|\u2014", '-', texte)
+writeLines(texte, "TP3-_R.Rmd", useBytes = FALSE)
+```
+
+# Exercice 1
+
+## 1.Déterminer, sans exécuter le code, le type et le mode de chaque objet
+
+```{r setup4, include=FALSE}
+x <- c(1, 2, 3) 
+```
+
+TYPE :Vecteur réel et MODE:numeric
+
+```{r setup1, include=FALSE}
+y <- c(TRUE, FALSE, TRUE)
+```
+
+TYPE :vecteur logique et MODE :logical
+
+```{r setup3, include=FALSE}
+z <- c("4", "5", "6") 
+```
+
+TYPE :Vecteur texte et MODE :character
+
+```{r setup2, include=FALSE}
+w <- list(1, "2", TRUE)
+```
+
+TYPE :Liste et MODE :list
+
+## 2.  Analyser précisément le résultat des expressions suivantes
+
+
+
+```{r setup6, include=FALSE}
+x <- c(1, 2, 3)
+y <- c(TRUE, FALSE, TRUE)
+x+y
+```
+
+Résultat:[1] 2 2 4 En fait quand un additionne deux vecteurs dont l'un est de type réel et l'autre logical ,le "TRUE" est considéré comme 1 et le "FALSE" comme 0 et ainsi donc la somme est possible
+
+```{r setup7, include=FALSE}
+x <- c(1, 2, 3)
+z <- c("4", "5", "6")
+
+```
+
+Erreur dans x + z : argument non numérique pour un opérateur binaire En fait R ne peut pas additionner des nombres avec des charactères ,il n'est pas capable de convertir le numéric en binaire
+
+```{r setup9, include=FALSE}
+x <- c(1, 2, 3)
+z <- c("4", "5", "6")
+as.numeric(z) + x
+```
+[1] 5 7 9
+En fait quand on fait asn.numeric(z), R donne un resultat logique c'est à dire des "TRUE " et des "FALSE" .Maintenant R convertit ça en binaire ,ce qui fait que la somme  est possible
+```{r setup52, include=FALSE}
+x <- c(1, 2, 3)
+w <- list(1, "2", TRUE)
+
+```
+Erreur dans unlist(w) + x : argument non numérique pour un opérateur binaire
+Enfait quand on unlist w ça devient un vecteur et comme il y'avait un élément chaine de caractère alors le type du vecteur est 
+## 3. Identifier tous les cas dans lesquels R effectue une coercition implicite.
+
+
+```{r setupa1, include=FALSE}
+x + y
+```
+En effet , y est un vecteur contenant  des valeurs logiques. R convertit implicitement les valeurs logiques (TRUE / FALSE) en valeurs numériques (1 / 0) lorsqu'on fait la somme
+
+```{r setupA2, include=FALSE}
+as.numeric(z) + x
+```
+De même lorsqu'on fait as.numeric(z),on obtient des valeurs logiques et en faisant la somme avex x R convertit implicitement les valeurs logiques (TRUE / FALSE) en valeurs numériques (1 / 0)
+
+```{r setupa3, include=FALSE}
+# unlist(w) + x
+```
+
+De même en faisant unlist (w) alors la liste est transform<ée en vecteur donc tous les éléments doivent avoir le même type et comme il y'a un charatère ,les autres sont implicitement transformé en caractère
+
+## 4. Préciser, pour chaque cas, le type cible et la logique de conversion mobilisée
+```{r setupa4, include=FALSE}
+x + y
+```
+le type cible est double et la logique e conversionest true est transformé en 1 et False en 0
+```{r setupa5, include=FALSE}
+as.numeric(z) + x
+```
+le type cible est double et la logique e conversionest true est transformé en 1 et False en 0
+```{r setupa6, include=FALSE}
+# unlist(w) + x
+```
+le type cible est character .Et comme dans R un vecteur n'a qu'un seul type et que logical<integer<character et il y'a un élément qui est une chaine de caractère  alors tous les autres sont transformés implicitement en chaine de caractères
+
+## 5. Discuter rigoureusement les conséquences de l'instruction suivante :
+```{r setupa8, include=FALSE}
+as.numeric(c("10", "A", "20"))
+
+```
+**Discussion**:`"A"` ne peut pas être converti en numérique. R produit un `NA` avec un avertissement (`NAs introduits lors de la conversion automatique`). Cela peut entraîner des biais silencieux dans les analyses si les `NA` ne sont pas détectés.
+
+
+## 6. Proposer une méthode robuste permettant de détecter automatiquement les conversions problématiques
+dans un vecteur
+
+```{r ex1_q6, include=FALSE}
+detecter_na_coercition <- function(vecteur) {
+  # Tentative de conversion avec suppression de l'avertissement natif
+  converti <- suppressWarnings(as.numeric(vecteur))
+  
+  # Indices des valeurs non convertibles
+  indices_na <- which(is.na(converti) & !is.na(vecteur))
+  
+  if (length(indices_na) == 0) {
+    cat("Aucune conversion problématique détectée.\n")
+  } else {
+    cat("Valeurs non convertibles détectées :\n")
+    cat("  Indices :", indices_na, "\n")
+    cat("  Valeurs :", vecteur[indices_na], "\n")
+  }
+  
+  return(invisible(converti))
+}
+
+# Test
+detecter_na_coercition(c("10", "A", "20", "B", "5"))
+```
+
+# Exercice 2
+
+
+
+## 1.Déterminer le type de chaque colonne de D.
+
+```{r setupb1, include=FALSE}
+A <- c(1, 2, 3)
+B <- c("a", "b", "c")
+C <- c(TRUE, FALSE, TRUE)
+D <- data.frame(A, B, C)
+typeof(D$A)
+typeof(D$B)
+typeof(D$C)
+
+```
+**Résultat :** `A` est `double`, `B` est `character`, `C` est `logical`.
+## 2. Expliquer précisément pourquoi R accepte cette structure malgré l'hétérogénéité initiale.
+
+Un `data.frame` est fondamentalement une liste de vecteurs de même longueur. Chaque colonne est un vecteur indépendant et peut donc avoir son propre type. R n'impose pas d'homogénéité entre colonnes, contrairement aux matrices. C'est précisément le rôle du `data.frame` : permettre la coexistence de types différents dans une structure tabulaire.
+
+## 3. Comparer le comportement de l'objet D avec celui obtenu après l'instruction suivante :
+
+```{r setupb34, include=FALSE}
+A <- c(1, 2, 3)
+B <- c("a", "b", "c")
+C <- c(TRUE, FALSE, TRUE)
+D <- data.frame(A, B, C)
+str(D)
+as.matrix(D)
+```
+Nous remarquons que  les élémemts des colonnes A et B sont maintenant dans des guillements ,c'est à dire les deux colonnes sont transformées en chaine de caractère
+
+
+
+## 4. Déterminer le type final de la matrice obtenue et justifier formellement la réponse
+
+Les matrices sont des structures tabulaires qui imposent l'homogénéité entre les colonnes .C'est à dire les colonnes doivent avoir le même type .Et comme logical<integer<character,alors les colonnes de type integer et logical sont transformées en type character
+
+## 5. Montrer en quoi cette transformation peut entraîner une perte d'information statistique dans un con
+texte d'analyse de données.
+
+**Discussion :** La conversion en matrice entraîne :
+- La perte des types numériques (calculs impossibles sans reconversion explicite).
+- La perte des logiques (`TRUE` devient `"TRUE"`, chaîne inerte statistiquement).
+- Un risque d'erreur silencieuse si l'analyste oublie de re-convertir.
+
+
+## 6. Proposer une stratégie permettant de préserver les types tout en rendant possibles certaines opérations
+de nature matricielle.
+
+
+```{r ex2_q6, include=FALSE}
+# Stratégie 1 : Travailler colonne par colonne sur le data.frame
+apply_numerique <- function(df, col) {
+  if (is.numeric(df[[col]])) return(mean(df[[col]]))
+  else return(NA)
+}
+
+cat("Moyenne de A :", apply_numerique(D, "A"), "\n")
+
+# Stratégie 2 : Extraire uniquement les colonnes numériques pour les opérations matricielles
+D_num <- D[, sapply(D, is.numeric), drop = FALSE]
+M_num <- as.matrix(D_num)
+cat("Matrice numérique préservée :\n")
+print(M_num)
+cat("typeof :", typeof(M_num), "\n")
+```
+# Exercice 3
+
+## 1. Transformer niveau en facteur ordonné avec une hiérarchie pertinente
+
+```{r setupb3, include=FALSE}
+niveau <- c("faible", "moyen", "élevé", "moyen", "faible")
+
+lvl<-factor(niveau,levels=c("faible","moyen","élevé"), ordered=TRUE)
+lvl
+            
+```
+## 2. Déterminer les valeurs numériques internes associées aux modalités.
+```{r setupB4, include=FALSE}
+lvl<-factor(niveau,levels=c("faible","moyen","élevé"), ordered=TRUE)
+as.numeric(lvl)
+```
+On obtient :[1] 1 2 3 2 1
+
+## 3. Expliquer pourquoi l'instruction suivante peut être dangereuse dans une analyse :
+```{r setupb5, include=FALSE}
+niveau <- c("faible", "moyen", "élevé", "moyen", "faible")
+
+as.numeric(niveau)
+```
+Enfait le risque c'est que c'est pas un facteur qui est de type integer ,ici on a des chaines de caractères .Alors lorsqu'on essaie de transformer en numérique ,R nous donne des NA et si on ne remarque pas ça ,ça risque de fausser nos analyses en créant des biais 
+
+## 4. Proposer une méthode correcte pour obtenir une représentation numérique cohérente
+```{r setup5, include=FALSE}
+niveau <- c("faible", "moyen", "élevé", "moyen", "faible")
+correspondance <- c("faible" = 1, "moyen" = 2, "élevé" = 3)
+niveau_num <- correspondance[niveau]
+print(niveau_num)
+```
+## 5.Discuter la validité statistique de l'expression :
+```{r setupB467, include=FALSE}
+
+lvl<-factor(niveau,levels=c("faible","moyen","élevé"), ordered=TRUE)
+revenu <- c(100, 200, 300, 250, 150)
+mean(revenu[lvl == "élevé"])
+```
+[1] 300 .C'est statistiquement valide en fait quand je fais niveau == "élevé" R va créer un autre vecteur de TRue and False .En parcourant niveau ,il met true chaque fois qu'il rencontre élevé et après il va prendre les valeurs de revenu qui se trouve dans cette position pour faire la moyenne
+
+## 6. Identifier un biais potentiel si les niveaux du facteur sont mal ordonnés
+```{r setupb6, include=FALSE}
+
+lvl2<-factor(niveau,levels=c("élevé","moyen","faible"), ordered=TRUE)
+lvl2
+```
+ Dans cet exemple voici ce qu'on obtient :Levels: élevé < moyen < faible.Ce qui ne correspond pas à la réalité.Un mauvais ordonnancement des niveaux peut entraîner un biais d'interprétation, car les analyses et représentations graphiques se basent sur l'ordre des modalités du facteur, qui peut alors être incohérent avec la réalité.
+ 
+ 
+# TP 4 -Construction structurée d'un data frame
+## 1. Construire un data.frame cohérent en respectant 
+
+
+
+```{r setupb7, include=FALSE}
+
+etudiants<-data.frame(
+  id      = 1:5,
+  sexe    = factor(c("H","F","F","H","F")),
+  filiere = factor(c("ISEP","AS","ISE","AS","ISEP")),
+  moyenne1=c(16,8,16,17,18),
+  moyenne2=c(16,9,NA,17,9),
+  boursier=factor(c("oui","non","non","non","oui")),
+  region  =c("Dakar",NA,"Kaolack",NA,"Matam")
+)  
+str(etudiants)
+```
+```{r setupb8, include=FALSE}
+etudiants <- data.frame(
+  id      = 1:5,
+  sexe    = factor(c("H","F","F","H","F")),
+  filiere = factor(c("ISEP","AS","ISE","AS","ISEP")),
+  moyenne1 = c(16, 8, 16, 17, 18),
+  moyenne2 = c(16, 9, NA, 17, 9),
+  boursier = factor(c("oui","non","non","non","oui")),
+  region  = c("Dakar", NA, "Kaolack", NA, "Matam")
+)
+Moy_annuelle <- rowMeans(etudiants[, c("moyenne1", "moyenne2")], na.rm = TRUE)
+Moy_annuelle
+
+```
+[1] 16.0  8.5 16.0 17.0 13.5
+## 3. Créer une variable qualitative prenant la modalité :
+• "Admis" si la moyenne annuelle est supérieure ou égale à 12 ;
+• "Ajourné" sinon.
+```{r setupba1, include=FALSE}
+etudiants <- data.frame(
+  id      = 1:5,
+  sexe    = factor(c("H","F","F","H","F")),
+  filiere = factor(c("ISEP","AS","ISE","AS","ISEP")),
+  moyenne1 = c(16, 8, 16, 17, 18),
+  moyenne2 = c(16, 9, NA, 17, 9),
+  boursier = factor(c("oui","non","non","non","oui")),
+  region  = c("Dakar", NA, "Kaolack", NA, "Matam")
+)
+etudiants$Moy_annuelle <- rowMeans(etudiants[, c("moyenne1", "moyenne2")], na.rm = TRUE)
+etudiants$statut<-ifelse(Moy_annuelle>12,"Admis","Ajourné")
+etudiants$statut  
+
+```
+[1] "Admis"   "Ajourné" "Admis"   "Admis"   "Admis"  
+
+## 4. Examiner s’il est pertinent de transformer la variable filiere en facteur ordonné, puis justifier  rigoureusement le choix retenu.
+
+**Discussion :** La variable `filiere` (ISEP, ISE, AS) est une variable nominale:il  n'existe pas de relation d'ordre naturelle entre les filières. Les transformer en facteur ordonné serait statistiquement injustifié et introduirait une relation hiérarchique arbitraire (ex. ISEP > ISE > AS n'a aucun sens substantiel). Le facteur non ordonné est donc le choix retenu et approprié.
+## 5. Vérifier la structure complète de l’objet et commenter :
+• les types ;
+• la cohérence ;
+• les éventuelles anomalies
+```{r setupba2, include=FALSE}
+
+str(etudiants)
+print(etudiants)
+summary(etudiants)
+```
+- Les types sont cohérents avec les choix de conception.
+- `moy_S2` contient 1 `NA` (légitimes, données manquantes).
+- `region` contient 2 `NA` (non critiques pour l'analyse principale).
+- `moyenne_annuelle` est complète grâce à `na.rm = TRUE`.
+
+## 6. Implémenter un contrôle automatique permettant de détecter :
+• les incohérences de type ;
+• les valeurs aberrantes ;
+• les valeurs manquantes critiques
+
+
+```{r tp4_q6, include=FALSE}
+controle_dataframe <- function(df) {
+  
+ 
+  
+  # 1. Types des colonnes
+  cat("--- Types des colonnes ---\n")
+  types <- sapply(df, class)
+  print(types)
+  
+  # 2. Valeurs manquantes par colonne
+  cat("\n--- Valeurs manquantes ---\n")
+  na_count <- sapply(df, function(col) sum(is.na(col)))
+  na_df <- data.frame(colonne = names(na_count), nb_NA = na_count)
+  print(na_df[na_df$nb_NA > 0, ])
+  
+  # 3. Valeurs manquantes critiques (colonnes numériques clés)
+  cols_critiques <- c("moyenne1", "moyenne2", "Moy_annuelle")
+  cols_presentes <- intersect(cols_critiques, names(df))
+  cat("\n--- NA critiques (colonnes numériques) ---\n")
+  for (col in cols_presentes) {
+    n_na <- sum(is.na(df[[col]]))
+    if (n_na > 0) cat("⚠ ", col, ":", n_na, "valeur(s) manquante(s)\n")
+    else cat("✓ ", col, ": aucun manquant\n")
+  }
+  
+  # 4. Valeurs aberrantes (notes hors [0, 20])
+  cat("\n--- Valeurs aberrantes (notes hors [0,20]) ---\n")
+  cols_notes <- c("moyenne1", "moyenne2", "Moy_annuelle")
+  for (col in intersect(cols_notes, names(df))) {
+    vals <- df[[col]]
+    aberrants <- which(!is.na(vals) & (vals < 0 | vals > 20))
+    if (length(aberrants) > 0) {
+      cat("⚠ ", col, "→ lignes", aberrants, ":", vals[aberrants], "\n")
+    } else {
+      cat("✓ ", col, ": aucune valeur aberrante\n")
+    }
+  }
+  
+  # 5. Incohérences de type (vérification des colonnes attendues)
+  cat("\n--- Vérification des types attendus ---\n")
+  attendus <- list(
+    id = "character", sexe = "factor", filiere = "factor",
+    moyenne1 = "numeric", moyenne2 = "numeric", boursier = "logical",
+    region = "character", Moy_annuelle = "numeric", statut = "factor"
+  )
+  for (col in names(attendus)) {
+    if (col %in% names(df)) {
+      type_obs <- class(df[[col]])[1]
+      if (type_obs != attendus[[col]]) {
+        cat("⚠ ", col, ": attendu", attendus[[col]], "→ observé", type_obs, "\n")
+      } else {
+        cat("✓ ", col, ": type correct (", type_obs, ")\n")
+      }
+    }
+  }
+  
+  cat("\n==============================\n")
+}
+
+controle_dataframe(etudiants)
+```
+
+## Question 7 - Implications des choix de typage
+
+### Pour une régression linéaire
+
+```{r tp4_q7a, include=FALSE}
+# Exemple : régression de la moyenne annuelle
+modele <- lm(Moy_annuelle ~ sexe + filiere + boursier + moyenne1, 
+             data = etudiants)
+summary(modele)
+```
+
+**Discussion :**
+- Les `factor` (sexe, filière) sont automatiquement transformés en variables indicatrices (dummy variables) par R. La modalité de référence est la première (ici `M` et `ISEP`).
+- Les `logical` (`boursier`) sont traités comme `0/1`, ce qui est correct.
+- Les `NA` dans les prédicteurs entraînent l'exclusion des lignes concernées (`na.action = na.omit` par défaut).
+- Un `factor` mal ordonné ou un `character` non factorisé peut produire des résultats inattendus.
+
+### Pour une analyse factorielle
+
+```{r tp4_q7b, include=FALSE}
+# L'analyse factorielle nécessite des variables numériques
+cols_num <- etudiants[, c("moyenne1", "moyenne2", "Moy_annuelle")]
+
+# Gestion des NA avant l'ACP
+cols_num_complete <- na.omit(cols_num)
+cat("Nombre d'observations complètes :", nrow(cols_num_complete), "\n")
+
+# ACP simple
+acp <- prcomp(cols_num_complete, scale. = TRUE)
+cat("\nVariances expliquées par composante :\n")
+print(summary(acp))
+```
+
+**Discussion :**
+- L'analyse factorielle (ACP) **n'accepte que des variables numériques**. Les `factor` et `character` doivent être encodés au préalable (dummy coding, scores ordinaux).
+- Les `NA` doivent être traités avant l'ACP (imputation ou suppression).
+- Un mauvais typage (ex. facteur converti naïvement en entier) biaise directement les composantes principales.
+- Le typage rigoureux en amont garantit des transformations explicites et reproductibles.
